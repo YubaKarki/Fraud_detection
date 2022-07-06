@@ -29,31 +29,7 @@ library(unbalanced)
 library(naivebayes) # for naiveBayes
 ```
 
-# Abstract
-Credit card are easy target for fraudster and common problem.Some technologies to identify and intercept these frauds with sufficient accuracy are discussed in this project.The identification of the fraudulent transactions include analyzing the customer’s usual spending behavior, including mapping the location of those spendings. This project attempt to achieve a statistically significant accuracy to detect fraud transactions using supervised learning like  logistic regression, decision tree, Support Vector Machine (SVM),K-Nearest Neighbors (KNN) and random forest algorithms.  The experiment on dofferent modelachieved up to 99.00 % accuracy (less than 1.0 % misclassification error). Eventhough it is a simplified method,, it is expected more complex model can predict with 100% accuracy with more data and parameters.
 
-# Introduction
-Credit card are assigned to specific customer or cardholder, which facilate easy payment  are easy target for fraudster. Credit card fraud is more common problem and detection of these fraud in banking sector is one of the vital aspects nowadays. Significant amount can be withdrawn without owner knowlege in short period of time by making the trasaction to appear real one. Some technologies to identify and intercept these frauds with sufficient accuracy are discussed in this project.The identification of the fraudulent transactions include analyzing the customer’s usual spending behavior, including mapping the location of those spendings.
-
-Dataset is obtained from kaggle (https://www.kaggle.com/mlg-ulb/creditcardfraud)
-This dataset contains transactions that occurred in two days in September 2013.  It has 284,807 transactions with 492 fraudulent transaction. The dataset is highly unbalanced and contains only numerical input variables as a result of a PCA transformation. Features V1, V2, … V28 are the principal components obtained with PCA, the only features which have not been transformed with PCA are 'Time' and 'Amount'.
-Feature 'Time' contains the seconds elapsed between each transaction and the first transaction in the dataset. The feature 'Amount' is the transaction Amount. Feature **'Class'** is the **response variable** and it takes value 1 in case of fraud and 0 otherwise.
-
-https://www.researchgate.net/publication/338655407_Credit_card_fraud_detection_using_naive_Bayesian_and_C45_decision_tree_classifiers
-
-In this experiment multiple suoervised and semi-supervised techniques are used to detect fraud. Supervised method like decision tree, naive bayers classification, least square regression, logististic regression and Support Vector Method (SVM)  are used to detect the the fraulent transaction in real time.
-Random tree based random forest  method is used to train the behaviour features of normal and abnormal transaction. The performance is summarized based in confusion matrix. Confusion matrix  rows represent  predicted class,  while rows represent actual class.  
-
-
-Predicted            |__Actual Positive__ | __Actual Negative__
-----------------------| -------------| -------------
-__Predicted Positive__ | True Positive(TP)           | False Positive (FP)
-__Predicted Negative__ | False Negative (FN)            | True Negative (TN)
-
-https://towardsdatascience.com/12-cool-data-science-projects-ideas-for-beginners-and-experts-fc75b5498e03
-
-
-https://rpubs.com/singhi08/Credit_card_fraud_detection
 
 ```{r, echo=TRUE}
 credit <- read.csv("Y:/001_002_STAT6000/Final Project/cc_data/creditcard.csv", header=TRUE)
@@ -251,20 +227,6 @@ Overall, at this juncture it is challenging to once and for all state whether em
 
 
 
-
-
-
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#+            SVM
-#+     https://www.kaggle.com/ikanoo/detect-credit-card-fraud-with-svm
-#+
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-
-
-
-
 Results
 The results of this attempt were quite impressive. With such a large dataset, training and testing results were very conclusive, with minimun false positives/negatives.
 Both the KNN and SVM models returned a maximum accuracy of about 99.955% and had a surprisingly high precision rate between trials. 
@@ -347,11 +309,6 @@ cm
 ```
 
 99.95% Accuacy obtained
-
-
-https://www.kaggle.com/vivekhn/99-97-accuracy-achieved-by-random-forest
-
-
 
 
 ```{r, echo=TRUE}
