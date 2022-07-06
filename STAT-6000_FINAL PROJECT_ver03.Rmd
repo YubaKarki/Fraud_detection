@@ -1,0 +1,408 @@
+---
+title: "Final Project_STAT6000"
+author: "Yubaraj Karki"
+date: "10/28/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## FINAL PROJECT-CREDIT CARD FRAUD DETECTION
+https://www.kaggle.com/yuridias/credit-card-fraud-detection-knn-naive-bayes
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+
+library(caret) #create Data Partition 
+library(rpart) # decision tree model
+library (rpart.plot) # decision tree model
+library(randomForest) # randome forest
+library(gmodels)
+library("class")
+library("dplyr")
+library(Rcpp)
+library(rminer)
+library(e1071) # for Support Vector Machines 
+library(ROCR) # for Prediction
+library(unbalanced)
+library(naivebayes) # for naiveBayes
+```
+
+# Abstract
+Credit card are easy target for fraudster and common problem.Some technologies to identify and intercept these frauds with sufficient accuracy are discussed in this project.The identification of the fraudulent transactions include analyzing the customer’s usual spending behavior, including mapping the location of those spendings. This project attempt to achieve a statistically significant accuracy to detect fraud transactions using supervised learning like  logistic regression, decision tree, Support Vector Machine (SVM),K-Nearest Neighbors (KNN) and random forest algorithms.  The experiment on dofferent modelachieved up to 99.00 % accuracy (less than 1.0 % misclassification error). Eventhough it is a simplified method,, it is expected more complex model can predict with 100% accuracy with more data and parameters.
+
+# Introduction
+Credit card are assigned to specific customer or cardholder, which facilate easy payment  are easy target for fraudster. Credit card fraud is more common problem and detection of these fraud in banking sector is one of the vital aspects nowadays. Significant amount can be withdrawn without owner knowlege in short period of time by making the trasaction to appear real one. Some technologies to identify and intercept these frauds with sufficient accuracy are discussed in this project.The identification of the fraudulent transactions include analyzing the customer’s usual spending behavior, including mapping the location of those spendings.
+
+Dataset is obtained from kaggle (https://www.kaggle.com/mlg-ulb/creditcardfraud)
+This dataset contains transactions that occurred in two days in September 2013.  It has 284,807 transactions with 492 fraudulent transaction. The dataset is highly unbalanced and contains only numerical input variables as a result of a PCA transformation. Features V1, V2, … V28 are the principal components obtained with PCA, the only features which have not been transformed with PCA are 'Time' and 'Amount'.
+Feature 'Time' contains the seconds elapsed between each transaction and the first transaction in the dataset. The feature 'Amount' is the transaction Amount. Feature **'Class'** is the **response variable** and it takes value 1 in case of fraud and 0 otherwise.
+
+https://www.researchgate.net/publication/338655407_Credit_card_fraud_detection_using_naive_Bayesian_and_C45_decision_tree_classifiers
+
+In this experiment multiple suoervised and semi-supervised techniques are used to detect fraud. Supervised method like decision tree, naive bayers classification, least square regression, logististic regression and Support Vector Method (SVM)  are used to detect the the fraulent transaction in real time.
+Random tree based random forest  method is used to train the behaviour features of normal and abnormal transaction. The performance is summarized based in confusion matrix. Confusion matrix  rows represent  predicted class,  while rows represent actual class.  
+
+
+Predicted            |__Actual Positive__ | __Actual Negative__
+----------------------| -------------| -------------
+__Predicted Positive__ | True Positive(TP)           | False Positive (FP)
+__Predicted Negative__ | False Negative (FN)            | True Negative (TN)
+
+https://towardsdatascience.com/12-cool-data-science-projects-ideas-for-beginners-and-experts-fc75b5498e03
+
+
+https://rpubs.com/singhi08/Credit_card_fraud_detection
+
+```{r, echo=TRUE}
+credit <- read.csv("Y:/001_002_STAT6000/Final Project/cc_data/creditcard.csv", header=TRUE)
+sum(is.na(credit)) # Finding missing value
+```
+
+
+
+Summary of the data
+```{r, echo=TRUE, include=FALSE}
+summary(credit)
+```
+
+# Checking the class types for each coulmns
+```{r, echo=FALSE}
+str(credit)  # Check the structure of the data
+```
+
+
+# Checking the class types for each coulmns
+```{r, echo=TRUE}
+sapply(credit, class)
+
+```
+
+```{r, echo=TRUE}
+
+colSums(is.na(credit))# Checking for Nulls in the data
+```
+
+Since, variable “Class” is classified as “integer”, transformation of integer to factor n was performed ie, Convert Numeric to Factor:
+
+
+```{r, echo=TRUE}
+credit$Class <- as.factor(credit$Class)
+table(credit$Class)
+```
+
+There is 284315 real transaction and  492 fraud transaction
+
+
+
+Visualization
+```{r, echo=TRUE}
+ggplot(credit,aes(x=Class, fill = Class))+
+  geom_bar() +
+  theme_minimal()+
+        theme(plot.background = element_rect("white"),
+        panel.background = element_rect("khaki2"))
+```
+
+
+
+
+
+
+
+# Sampling data for training (75 %) and testing (25 %), need package caTools.
+
+```{r, echo=TRUE}
+set.seed(120)
+library(caTools)
+sample = sample.split(credit$Class, SplitRatio = .75)
+train = subset(credit, sample == TRUE)
+test  = subset(credit, sample == FALSE)
+table(train$Class)
+```
+
+
+```{r, echo=TRUE}
+
+mean(as.integer(train$Class) - 1)
+
+```
+
+17.27 % of the customers have fraudulant transaction
+
+
+```{r, echo=TRUE}
+dim(train)
+dim(test)
+```
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+# Logistic regression
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Logistic regression is a simple regression model whose output has a score between 0 and 1. This is achieved by using the logistic function:
+$$g(z) = 1/(1 + {exp(-z))$$
+
+The model can be fitted using gradient descent on the parameter vector beta.
+
+```{r, echo=TRUE}
+
+Logistic_Model <- glm(Class ~ ., data = train, family = "binomial")
+Logistic_prob <- predict(Logistic_Model, newdata = test, type = "response")
+
+Logistic_pred <- ifelse(Logistic_prob > 0.5, 1, 0) 
+# Use a threshold of 0.5 to transform predictions to binary
+table(test$Class, Logistic_pred)
+
+
+
+```
+
+
+```{r, echo=TRUE}
+summary(Logistic_Model)
+```
+
+```{r, echo=TRUE}
+mean(test$Class == Logistic_pred)
+
+```
+
+This simple logistic regression model achieved nearly  ~99% precision (positive predictive value) and ~100% recall (sensitivity). We can see there are only 6 false negatives (transactions which were fraudulent in reality but ont identified as such by the model). This means that the baseline model will be very hard to beat.
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+#  Decsion Tree
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+```{r, echo=TRUE}
+
+library(rpart) # decision tree model
+library (rpart.plot) # decision tree model
+# Create a decision tree model
+decision_model <- rpart(Class ~. , credit, method = "class" , minbucket = 20)
+prp(decision_model, box.palette="RdBu", shadow.col="gray") 
+```
+
+
+```{r, echo=TRUE}
+predicted_val <- predict(decision_model, test, type = "class")
+confusionMatrix(test$Class, predicted_val)
+
+```
+
+```{r, echo=TRUE}
+mean(test$Class == predicted_val)
+```
+
+
+\
+
+#++++++++++++++++++++++++++++++++++++++
+#
+# SVM Model
+#
+#++++++++++++++++++++++++++++++++++++++
+
+
+```{r, echo=TRUE}
+svm.model <- svm(Class ~ ., data = train[1:10000,], kernel = "radial", cost = 1, gamma = 0.1)
+svm.predict <- predict(svm.model, test)
+#Create Confusion Matrix
+confusionMatrix(test$Class, svm.predict)
+```
+
+```{r , echo=TRUE}
+mean(test$Class == svm.predict)
+```
+
+
+
+#++++++++++++++++++++++++++++++++++++++
+
+K-Nearest Neighbors
+KNN check how closely  the properties of the new object is related to already known categories. As all the variables but that of prediction were of class either “numeric” or “integer”, whereas the data itself was of a scaled format, I proceeded to performing the knn classification right away. The number of neighbours was set to 5 as a default.
+knn need package class. 
+
+```{r , echo=TRUE}
+set.seed(250)
+knn1 <- knn(train = train[,-31], test = test[,-31], cl = train$Class, k = 5, prob=TRUE)
+#Exclude last column 31 with True or False data
+# kNN model summary
+knn1
+```
+
+```{r , echo=TRUE}
+confusionMatrix(knn1, test$Class, positive = "1")
+```
+
+Apparently, a 99.8% accuracy was obtained with the specified index of “k”, yet still there were few drawbacks with the output from the “confusionMatrix”.
+
+One of such drawbacks was that the model did not predict any cases of “fraud” (that is, “Class” = 1), though some actual cases of fraud were erroneously assigned to be non-fraud.
+
+The other drawback laid in the fact that the achieved accuracy did not exceed the No-Information rate (if all the observations were predicted to be non-fraud). Why the two measures were equivalent directly comes from what has been mentioned above: all the cases were assigned to be non-fraud.
+
+Overall, at this juncture it is challenging to once and for all state whether employing knn is a worthwhile endeavor for obtaining the highest possible accuracy. The subsequent analysis will, thus, explore that part in more details.
+
+
+
+
+
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#+            SVM
+#+     https://www.kaggle.com/ikanoo/detect-credit-card-fraud-with-svm
+#+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+
+
+Results
+The results of this attempt were quite impressive. With such a large dataset, training and testing results were very conclusive, with minimun false positives/negatives.
+Both the KNN and SVM models returned a maximum accuracy of about 99.955% and had a surprisingly high precision rate between trials. 
+
+
+This 3σ (three sigma) accuracy indicates that about one transaction will be incorrectly classified out of 370.
+
+If we assume that consumers make at least one transaction a day (which is a gross understatement), this would mean a misclassification error would occur at least once a year.
+
+Clearly, current banking algorithms far exceed the ones discussed in this paper.
+
+
+Conclusion
+While the models implemented in this approach were fairly limited, with simply the expansive dataset that was provided a highly accurate model could be constructed. Fortunately, banking algorithms around credit fraud are much more comprehensive and robust. The time for running this model is 30 minutes
+
+
+
+
+
+
+#Training of the random model
+```{r}
+library(randomForest)
+rf <- randomForest(train$Class ~ .,data=train)
+
+```
+
+
+ Check attribute of random forest        
+```{r, echo=TRUE}
+attributes(rf)
+
+```  
+
+#```{r}
+#rf$Class
+# ```
+
+
+# Print the model output
+
+```{r, echo=TRUE}
+print(rf)
+```
+
+
+# Checking for the node count in trees
+```{r, echo=TRUE}
+hist(treesize(rf),main = "No of Nodes in the trees",col="green")
+```
+
+# Variable importance plot, variable importance as measured by a Random Forest
+```{r, echo=TRUE}
+varImpPlot(rf, sort = TRUE, n.var = 20) # variables be sorted in decreasing order of importance and 20 important Variable will be selected
+```
+
+Higher Mean Decrease in Gini has higher importent variable i.e, the most important variables to the model will be highest in the plot and have the largest Mean Decrease in Gini Values. While, the least important variable will be lowest in the plot, and have the smallest Mean Decrease in Gini values.Because Random Forests are made from collection of individual Decision Trees. Gini Importance can be leveraged to calculate Mean Decrease in Gini, which is a measure of variable importance for estimating a target variable. Mean Decrease in Gini is the average (mean) of a variable’s total decrease in node impurity, weighted by the proportion of samples reaching that node in each individual decision tree in the random forest. It effectively measure how important a variable is for estimating the value of the target variable across all trees of the forest. A higher Mean Decrease in Gini indicates higher variable importance. Variables are sorted and displayed in the Variable Importance Plot created for the Random Forest by this measure. SO, Variable V17, V14, V12... are the important varaibeles in our case. 
+.
+
+
+
+# Predicting the test data using the trained rf model
+```{r, echo=TRUE}
+pred = predict(rf, newdata=test[-31])
+```
+
+
+# Plotting the crosstables to check the F1-score
+```{r, echo=TRUE}
+library(gmodels)
+CrossTable(pred, test$Class,prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('predicted', 'actual'))
+```
+
+
+# Using the caret library to check the accuracy
+```{r, echo=TRUE}
+library(caret)
+cm<-confusionMatrix(table(pred,test$Class))
+cm
+```
+
+99.95% Accuacy obtained
+
+
+https://www.kaggle.com/vivekhn/99-97-accuracy-achieved-by-random-forest
+
+
+
+
+```{r, echo=TRUE}
+# Checking for the node count in trees
+hist(treesize(rf),main = "No of Nodes in the trees",col="green")
+```
+
+
+# Variable importance plot
+```{r, echo=TRUE}
+varImpPlot(rf, sort = T, n.var = 25)
+```
+
+
+# Decision tree for the test data
+`
+```{r, echo = TRUE}
+library(rpart)
+library(rpart.plot)
+
+
+# Create a decision tree model
+tree <- rpart(test$Class~., data=test, method = 'class', model=TRUE, cp=0.01)
+```
+
+```{r, echo = TRUE}
+# Visualize the decision tree with rpart.plot
+rpart.plot(tree, box.palette="RdBu", shadow.col="gray")
+```
+
+
+
+                   
+     Since               
+         Number of trees: 500
+No. of variables tried at each split: 5, which is sq. root of variable/features sq.
+        estimate of  error rate: 0.05%, which is good. In confusion matrix
+        error rate is low for 0 is very less and error rate of 1 is little high
+         
+
+
+
+
+
+
+
+
+
+
+
+
+
